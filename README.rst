@@ -39,7 +39,7 @@ To change this to use esi's you would do something like this::
     <html>
         <body>
         {% for tag in tag_list %}
-            {% esi for tag list 'includes/lists' timeout 900 %}
+            {% esi for tag name 'includes/lists' timeout 900 %}
         {% endfor %}
         {% get_latest_blog_entry as blog_entry %}
         {% esi for blog_entry template 'blog/entry_detail.html' timeout 1200 %}
