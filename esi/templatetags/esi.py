@@ -1,14 +1,15 @@
 from django import template
 
-import datetime
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from .. import views as esi_views
 
 register = template.Library()
 
+
 class EsiNode(template.Node):
-    def __init__(self, object=None, template_name=None, template_path=None, timeout=None):
+    def __init__(self, object=None, template_name=None,
+                 template_path=None, timeout=None):
         self.object = template.Variable(object)
         if template_name:
             self.url_name = 'esi'
@@ -19,13 +20,13 @@ class EsiNode(template.Node):
         if timeout:
             self.timeout = timeout or settings.CACHE_MIDDLEWARE_SECONDS
 
-    def render(self,context):
+    def render(self, context):
         try:
             object = self.object.resolve(context)
-        except template.VariableDoesNotExist:
+        except:
             return ''
         timeout = int(self.timeout)
-        template = self.template.replace("'",'').rstrip("/")
+        template = self.template.replace("'", '').rstrip("/")
         kwargs = {
             'app_label': object._meta.app_label,
             'model_name': object._meta.module_name,
@@ -37,8 +38,9 @@ class EsiNode(template.Node):
             return '<esi:include src="%s" />' % reverse('esi', kwargs=kwargs)
         else:
             # call the ESI view
-            print context
+            #print context
             return esi_views.esi(context['request'], **kwargs).content
+
 
 def do_create_esi(parser, token):
     """
@@ -57,11 +59,11 @@ def do_create_esi(parser, token):
     [object]  and [[template template_name] or [path template_path]] are required, timeout is optional.
     """
 
-        # split_contents() knows not to split quoted strings.
+    # split_contents() knows not to split quoted strings.
     args = token.split_contents()
     tag_name = args[0]
     if len(args) < 4:
-        raise template.TemplateSyntaxError("%r tag requires a at least 4 arguments" % token.contents.split()[0])
+        raise template.TemplateSyntaxError("%r tag requires a at least"" 4 arguments" % token.contents.split()[0])
     if args[1] != 'for':
         raise template.TemplateSyntaxError("%r tag must start with 'for'" % tag_name)
     if args[3] not in ['template', 'path']:
@@ -72,14 +74,15 @@ def do_create_esi(parser, token):
     for arg in args:
         try:
             if arg == 'path':
-                kwargs.update({'template_path':args[args.index(arg)+1]})
+                kwargs.update({'template_path': args[args.index(arg) + 1]})
             if arg == 'template':
-                kwargs.update({'template_name':args[args.index(arg)+1]})
+                kwargs.update({'template_name': args[args.index(arg) + 1]})
             if arg == 'timeout':
-                kwargs.update({'timeout':args[args.index(arg)+1]})
+                kwargs.update({'timeout': args[args.index(arg) + 1]})
         except IndexError:
-            raise template.TemplateSyntaxError("%r in tag '%s' requires an arguement." % (arg, tag_name))
+            raise template.TemplateSyntaxError("%r in tag '%s' requires an argument." % (arg, tag_name))
 
     return EsiNode(**kwargs)
+
 
 register.tag('esi', do_create_esi)
