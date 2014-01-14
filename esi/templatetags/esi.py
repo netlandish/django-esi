@@ -34,7 +34,7 @@ class EsiNode(template.Node):
             'timeout': timeout,
             'template': template
         }
-        if not settings.DEBUG:
+        if settings.ESI_ENABLED:
             return '<esi:include src="%s" />' % reverse('esi', kwargs=kwargs)
         else:
             # call the ESI view
