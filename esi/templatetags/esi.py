@@ -24,16 +24,21 @@ class EsiNode(template.Node):
         try:
             object = self.object.resolve(context)
         except:
-            return ''
+            object = None
         timeout = int(self.timeout)
         template = self.template.replace("'", '').rstrip("/")
         kwargs = {
-            'app_label': object._meta.app_label,
-            'model_name': object._meta.module_name,
-            'object_id': object.pk,
             'timeout': timeout,
             'template': template
         }
+        if object:
+            kwargs.update({
+                'app_label': object._meta.app_label,
+                'model_name': object._meta.module_name,
+                'object_id': object.pk,
+            })
+        else:
+            kwargs['object_id'] = 'static'
         if settings.ESI_ENABLED:
             return '<esi:include src="%s" />' % reverse('esi', kwargs=kwargs)
         else:

@@ -78,7 +78,10 @@ def esi(request, app_label=None, model_name=None,
     """
     default_template = getattr(settings, 'ESI_DEFAULT_TEMPLATE', None)
     default_template_dir = getattr(settings, 'ESI_DEFAULT_DIRECTORY', None)
-    obj, model = get_object(app_label, model_name, object_id)
+    if app_label and model_name and object_id != 'static':
+        obj, model = get_object(app_label, model_name, object_id)
+    else:
+        obj, model = None, None
     template_list = []
     if template is not None:
         template_list.extend(get_template_list(obj, template))
@@ -101,7 +104,8 @@ def esi(request, app_label=None, model_name=None,
     }
     c = RequestContext(request, context)
     response = HttpResponse(t.render(c))
-    populate_xheaders(request, response, model,
-                      getattr(obj, model._meta.pk.name))
+    if model:
+        populate_xheaders(request, response, model,
+                          getattr(obj, model._meta.pk.name))
     patch_cache_control(response, max_age=timeout)
     return response

@@ -17,6 +17,10 @@ from django.conf.urls.defaults import patterns, url
 
 urlpatterns = patterns(
     'esi.views',
+    # Static urls
+    url(r'^(?P<object_id>static)/(?P<timeout>\d+)/(?P<template>[\w\-\/\.]+)/$',
+        'esi', name='esi'),
+    # For objects
     url(r'^(?P<app_label>[\w-]+)/(?P<model_name>[\w-]+)/'
         '(?P<object_id>\d+)/$', 'esi', name='esi'),
     url(r'^(?P<app_label>[\w-]+)/(?P<model_name>[\w-]+)/'
