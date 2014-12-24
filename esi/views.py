@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.core.xheaders import populate_xheaders
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template import RequestContext, loader
@@ -104,8 +103,10 @@ def esi(request, app_label=None, model_name=None,
     }
     c = RequestContext(request, context)
     response = HttpResponse(t.render(c))
-    if model:
-        populate_xheaders(request, response, model,
-                          getattr(obj, model._meta.pk.name))
+
+    # # removed from django >= 1.6 because bugging with cache
+    # if model:
+    #   populate_xheaders(request, response, model,
+    #                      getattr(obj, model._meta.pk.name))
     patch_cache_control(response, max_age=timeout)
     return response

@@ -13,7 +13,7 @@ example URL:
   /esi/news/story/12345/300/news/story_detail.html
 
 """
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 
 urlpatterns = patterns(
     'esi.views',
