@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
-from django.template import RequestContext, loader
+from django.template import loader
 from django.db.models import Model, get_model
 from django.utils.cache import patch_cache_control
 
@@ -33,7 +33,7 @@ def get_template_list(obj, template):
         ctype_strs = []
         for ctype in content_types:
             ctype_strs.append('%s.%s' % (ctype._meta.app_label,
-                                         ctype._meta.module_name))
+                                         ctype._meta.model_name))
 
         tdirs = [template, ]
         for tdir in tdirs:
@@ -46,7 +46,7 @@ def get_template_list(obj, template):
 def esi(request, app_label=None, model_name=None,
         object_id=None, timeout=900, template=None):
     """
-    Using the app_label, module_name and object_id parameters create
+    Using the app_label, model_name and object_id parameters create
     an object and render it using `template_name` or `template_dir`.
 
     Parameters:
@@ -101,8 +101,7 @@ def esi(request, app_label=None, model_name=None,
         'object': obj,
         model_name: obj
     }
-    c = RequestContext(request, context)
-    response = HttpResponse(t.render(c))
+    response = HttpResponse(t.render(context, request))
 
     # # removed from django >= 1.6 because bugging with cache
     # if model:

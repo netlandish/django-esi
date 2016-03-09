@@ -8,13 +8,13 @@ Replace this with more appropriate tests for your application.
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from django.template import RequestContext, loader
+from django.template import loader
 from django.test import TestCase, Client
 try:
     from django.test import RequestFactory
 except:
     RequestFactory = None
-from django.template import Template, Context, RequestContext, TemplateSyntaxError
+from django.template import Template, Context, TemplateSyntaxError
 from esi.views import esi, get_object
 
 
@@ -23,7 +23,7 @@ class EsiTest(TestCase):
         self.user, created = User.objects.get_or_create(username='testme', first_name='test',email='test@test.com', is_active=True)
         self.kwargs = {
             'app_label': self.user._meta.app_label,
-            'model_name': self.user._meta.module_name,
+            'model_name': self.user._meta.model_name,
             'object_id': self.user.pk,
             'timeout': 1200,
             'template': 'includes/lists/auth.user.html'
@@ -126,9 +126,8 @@ class EsiTest(TestCase):
         context = {
             'object': self.user,
         }
-        c = RequestContext(r.request, context)
-        rendered = t.render(c)
-        
+        rendered = t.render(context, r.request)
+
         self.assertEqual(r.content, rendered)
     
     def test_esi_list_view(self):

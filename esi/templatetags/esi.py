@@ -18,7 +18,9 @@ class EsiNode(template.Node):
             self.url_name = 'esi_list'
             self.template = template_path
         if timeout:
-            self.timeout = timeout or settings.CACHE_MIDDLEWARE_SECONDS
+            self.timeout = timeout
+        else:
+            self.timeout = settings.CACHE_MIDDLEWARE_SECONDS
 
     def render(self, context):
         try:
@@ -34,7 +36,7 @@ class EsiNode(template.Node):
         if object:
             kwargs.update({
                 'app_label': object._meta.app_label,
-                'model_name': object._meta.module_name,
+                'model_name': object._meta.model_name,
                 'object_id': object.pk,
             })
         else:
