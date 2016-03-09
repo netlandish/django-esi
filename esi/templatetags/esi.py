@@ -1,5 +1,6 @@
-from django import template
+import urllib
 
+from django import template
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from .. import views as esi_views
@@ -9,7 +10,7 @@ register = template.Library()
 
 class EsiNode(template.Node):
     def __init__(self, object=None, template_name=None,
-                 template_path=None, timeout=None):
+                 template_path=None, timeout=None, extra_dict=None):
         self.object = template.Variable(object)
         if template_name:
             self.url_name = 'esi'
@@ -21,6 +22,7 @@ class EsiNode(template.Node):
             self.timeout = timeout
         else:
             self.timeout = settings.CACHE_MIDDLEWARE_SECONDS
+        self.extra_dict = template.Variable(extra_dict) if extra_dict else {}
 
     def render(self, context):
         try:
@@ -41,11 +43,22 @@ class EsiNode(template.Node):
             })
         else:
             kwargs['object_id'] = 'static'
+
+        try:
+            extra_dict = self.extra_dict.resolve(context)
+        except:
+            extra_dict = {}
+
         if settings.ESI_ENABLED:
-            return '<esi:include src="%s" />' % reverse('esi', kwargs=kwargs)
+            esi_url = reverse('esi', kwargs=kwargs)
+            if extra_dict:
+                qs = urllib.urlencode(extra_dict)
+                if qs:
+                    esi_url = '%s?%s' % (esi_url, qs)
+            return '<esi:include src="%s" />' % esi_url
         else:
             # call the ESI view
-            #print context
+            kwargs['extra_dict'] = extra_dict
             return esi_views.esi(context['request'], **kwargs).content
 
 
@@ -55,7 +68,7 @@ def do_create_esi(parser, token):
 
     Syntax::
 
-        {% create_esi for [object] [[template <template_name>] or [path <template_path>]] [timeout <time_in_seconds>]%}
+        {% create_esi for [object] [[template <template_name>] or [path <template_path>]] [timeout <time_in_seconds>] [extra_dict <extra_querystring_args>] %}
 
     For example::
 
@@ -63,9 +76,8 @@ def do_create_esi(parser, token):
 
         {% create_esi for object path 'includes/lists' timeout 1200 %}
 
-    [object]  and [[template template_name] or [path template_path]] are required, timeout is optional.
+    [object]  and [[template template_name] or [path template_path]] are required, timeout and extra_dict are optional.
     """
-
     # split_contents() knows not to split quoted strings.
     args = token.split_contents()
     tag_name = args[0]
@@ -86,6 +98,8 @@ def do_create_esi(parser, token):
                 kwargs.update({'template_name': args[args.index(arg) + 1]})
             if arg == 'timeout':
                 kwargs.update({'timeout': args[args.index(arg) + 1]})
+            if arg == 'extra_dict':
+                kwargs.update({'extra_dict': args[args.index(arg) + 1]})
         except IndexError:
             raise template.TemplateSyntaxError("%r in tag '%s' requires an argument." % (arg, tag_name))
 

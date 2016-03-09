@@ -5,6 +5,8 @@ from django.template import loader
 from django.db.models import Model, get_model
 from django.utils.cache import patch_cache_control
 
+from houselogic.editorial_content.models import Content, Video
+
 
 def get_object(app_label, model_name, object_id):
     model = get_model(app_label, model_name)
@@ -44,7 +46,7 @@ def get_template_list(obj, template):
 
 
 def esi(request, app_label=None, model_name=None,
-        object_id=None, timeout=900, template=None):
+        object_id=None, timeout=900, template=None, extra_dict=None):
     """
     Using the app_label, model_name and object_id parameters create
     an object and render it using `template_name` or `template_dir`.
@@ -101,6 +103,16 @@ def esi(request, app_label=None, model_name=None,
         'object': obj,
         model_name: obj
     }
+    if not extra_dict:
+        extra_dict = request.GET
+    if extra_dict:
+        if 'content' in extra_dict:
+            context['content'] = get_object_or_404(
+                Content, pk=extra_dict['content'])
+        if 'video' in extra_dict:
+            context['video'] = get_object_or_404(
+                Video, pk=extra_dict['video'])
+
     response = HttpResponse(t.render(context, request))
 
     # # removed from django >= 1.6 because bugging with cache
