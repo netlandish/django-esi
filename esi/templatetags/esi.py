@@ -54,8 +54,8 @@ class EsiNode(template.Node):
             if extra_dict:
                 qs = urllib.urlencode(extra_dict)
                 if qs:
-                    esi_url = '%s?%s' % (esi_url, qs)
-            return '<esi:include src="%s" />' % esi_url
+                    esi_url = '{0}?{1}'.format(esi_url, qs)
+            return '<esi:include src="{0}" />'.format(esi_url)
         else:
             # call the ESI view
             kwargs['extra_dict'] = extra_dict

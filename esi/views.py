@@ -5,8 +5,6 @@ from django.template import loader
 from django.db.models import Model, get_model
 from django.utils.cache import patch_cache_control
 
-from houselogic.editorial_content.models import Content, Video
-
 
 def get_object(app_label, model_name, object_id):
     model = get_model(app_label, model_name)
@@ -103,15 +101,9 @@ def esi(request, app_label=None, model_name=None,
         'object': obj,
         model_name: obj
     }
-    if not extra_dict:
-        extra_dict = request.GET
     if extra_dict:
-        if 'content' in extra_dict:
-            context['content'] = get_object_or_404(
-                Content, pk=extra_dict['content'])
-        if 'video' in extra_dict:
-            context['video'] = get_object_or_404(
-                Video, pk=extra_dict['video'])
+        request.GET = request.GET.copy()
+        request.GET.update(extra_dict)
 
     response = HttpResponse(t.render(context, request))
 
