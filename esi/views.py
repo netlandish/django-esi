@@ -2,12 +2,13 @@ from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template import loader
-from django.db.models import Model, get_model
+from django.db.models import Model
 from django.utils.cache import patch_cache_control
+from django.apps import apps
 
 
 def get_object(app_label, model_name, object_id):
-    model = get_model(app_label, model_name)
+    model = apps.get_model(app_label, model_name)
     if hasattr(model, 'live'):
         obj = get_object_or_404(model.live, pk=object_id)
     else:
