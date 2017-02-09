@@ -9,8 +9,8 @@ register = template.Library()
 
 
 class EsiNode(template.Node):
-    def __init__(self, object=None, template_name=None,
-                 template_path=None, timeout=None, extra_dict=None):
+    def __init__(self, object=None, template_name=None, template_path=None,
+                 timeout=None, extra_dict=None, render_tag=True):
         self.object = template.Variable(object)
         if template_name:
             self.url_name = 'esi'
@@ -23,6 +23,7 @@ class EsiNode(template.Node):
         else:
             self.timeout = settings.CACHE_MIDDLEWARE_SECONDS
         self.extra_dict = template.Variable(extra_dict) if extra_dict else {}
+        self.render_tag = render_tag
 
     def render(self, context):
         try:
@@ -49,7 +50,7 @@ class EsiNode(template.Node):
         except:
             extra_dict = {}
 
-        if settings.ESI_ENABLED:
+        if settings.ESI_ENABLED and self.render_tag:
             esi_url = reverse('esi', kwargs=kwargs)
             if extra_dict:
                 qs = urllib.urlencode(extra_dict)
@@ -68,13 +69,15 @@ def do_create_esi(parser, token):
 
     Syntax::
 
-        {% create_esi for [object] [[template <template_name>] or [path <template_path>]] [timeout <time_in_seconds>] [extra_dict <extra_querystring_args>] %}
+        {% esi for [object] [[template <template_name>] or [path <template_path>]] [timeout <time_in_seconds>] [extra_dict <extra_querystring_args>] [render_tag <True/False>] %}
 
     For example::
 
-        {% create_esi for object template 'news/story_detail.html' timeout 900 %}
+        {% esi for object template 'news/story_detail.html' timeout 900 %}
 
-        {% create_esi for object path 'includes/lists' timeout 1200 %}
+        {% esi for object path 'includes/lists' timeout 1200 %}
+
+        {% esi for None template 'includes/variables.html' render_tag False %}
 
     [object]  and [[template template_name] or [path template_path]] are required, timeout and extra_dict are optional.
     """
@@ -100,6 +103,8 @@ def do_create_esi(parser, token):
                 kwargs.update({'timeout': args[args.index(arg) + 1]})
             if arg == 'extra_dict':
                 kwargs.update({'extra_dict': args[args.index(arg) + 1]})
+            if arg == 'render_tag':
+                kwargs.update({'render_tag': bool(args[args.index(arg) + 1])})
         except IndexError:
             raise template.TemplateSyntaxError("%r in tag '%s' requires an argument." % (arg, tag_name))
 
