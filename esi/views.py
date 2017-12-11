@@ -7,9 +7,9 @@ from django.utils.cache import patch_cache_control
 from django.apps import apps
 
 
-def get_object(app_label, model_name, object_id):
+def get_object(app_label, model_name, object_id, use_live_manager=True):
     model = apps.get_model(app_label, model_name)
-    if hasattr(model, 'live'):
+    if use_live_manager and hasattr(model, 'live'):
         obj = get_object_or_404(model.live, pk=object_id)
     else:
         obj = get_object_or_404(model, pk=object_id)
@@ -79,7 +79,8 @@ def esi(request, app_label=None, model_name=None,
     default_template = getattr(settings, 'ESI_DEFAULT_TEMPLATE', None)
     default_template_dir = getattr(settings, 'ESI_DEFAULT_DIRECTORY', None)
     if app_label and model_name and object_id != 'static':
-        obj, model = get_object(app_label, model_name, object_id)
+        ulm = extra_dict.get('use_live_manager', True) if extra_dict else True
+        obj, model = get_object(app_label, model_name, object_id, ulm)
     else:
         obj, model = None, None
     template_list = []
