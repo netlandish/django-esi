@@ -79,8 +79,12 @@ def esi(request, app_label=None, model_name=None,
     default_template = getattr(settings, 'ESI_DEFAULT_TEMPLATE', None)
     default_template_dir = getattr(settings, 'ESI_DEFAULT_DIRECTORY', None)
     if app_label and model_name and object_id != 'static':
-        ulm = extra_dict.get('use_live_manager', True) if extra_dict else True
-        obj, model = get_object(app_label, model_name, object_id, ulm)
+        if extra_dict:
+            use_live_manager = extra_dict.get('use_live_manager', True)
+        else:
+            use_live_manager = request.GET.get('use_live_manager') != 'False'
+        obj, model = get_object(app_label, model_name, object_id,
+                                use_live_manager)
     else:
         obj, model = None, None
     template_list = []
