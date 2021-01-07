@@ -7,7 +7,7 @@ Replace this with more appropriate tests for your application.
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.template import loader
 from django.test import TestCase, Client
 try:

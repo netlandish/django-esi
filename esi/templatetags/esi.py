@@ -2,7 +2,7 @@ import urllib
 
 from django import template
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from .. import views as esi_views
 
 register = template.Library()
